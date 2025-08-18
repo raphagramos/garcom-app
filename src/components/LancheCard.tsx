@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components/native";
 import Card from "./Card";
 import Button from "./Button";
-import { Lanche } from "../types";
+import { Lanche } from "../../types";
 
 const Title = styled.Text`
   font-size: 18px;
@@ -23,12 +23,24 @@ type Props = {
 };
 
 export default function LancheCard({ lanche, onOrder, onRemove }: Props) {
+  // Garantir que ingredients sempre seja array
+  const ingredientNames =
+    lanche.ingredients && lanche.ingredients.length > 0
+      ? lanche.ingredients.map((i) => i.name).join(", ")
+      : "Sem ingredientes";
+
   return (
     <Card>
       <Title>{lanche.name}</Title>
-      <Subtle>{lanche.ingredients.map(i => i.name).join(", ") || "Sem ingredientes"}</Subtle>
-      {onOrder ? <Button title="Anotar Pedido" variant="success" onPress={onOrder} /> : null}
-      {onRemove ? <Button title="Excluir" variant="danger" onPress={onRemove} /> : null}
+      <Subtle>{ingredientNames}</Subtle>
+
+      {onOrder && (
+        <Button title="Anotar Pedido" variant="success" onPress={onOrder} />
+      )}
+
+      {onRemove && (
+        <Button title="Excluir" variant="danger" onPress={onRemove} />
+      )}
     </Card>
   );
 }

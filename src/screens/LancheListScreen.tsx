@@ -28,14 +28,30 @@ export default function LancheListScreen({ navigation }: Props) {
   return (
     <ThemeProvider theme={theme}>
       <Container>
-        <Button title="Cadastrar Lanche" variant="info" onPress={() => navigation.navigate("Cadastrar Lanche")} />
+        <Button
+          title="Cadastrar Lanche/Prato"
+          variant="info"
+          onPress={() =>
+            navigation.navigate("CadastroLanche", { comIngredientes: true })
+          }
+        />
+
+        <Button
+          title="Cadastrar Item Simples"
+          variant="primary"
+          onPress={() =>
+            navigation.navigate("CadastroLanche", { comIngredientes: false })
+          }
+        />
         <FlatList
           data={lanches}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <LancheCard
               lanche={item}
-              onOrder={() => navigation.navigate("Pedido", { lancheId: item.id })}
+              onOrder={() =>
+                navigation.navigate("Pedido", { lancheId: item.id })
+              }
               onRemove={() => removeLanche(item.id)}
             />
           )}

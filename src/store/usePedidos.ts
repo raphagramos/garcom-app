@@ -6,7 +6,7 @@ import { uid } from "../utils/uid";
 
 type PedidoState = {
   pedidos: Order[];
-  addPedido: (p: Omit<Order, "id" | "createdAt">) => string; // returns id
+  addPedido: (p: Omit<Order, "id" | "createdAt">) => string;
   clear: () => void;
 };
 
@@ -16,7 +16,11 @@ export const usePedidos = create<PedidoState>()(
       pedidos: [],
       addPedido: (p) => {
         const id = uid("pedido");
-        const newOrder: Order = { id, createdAt: Date.now(), ...p };
+        const newOrder: Order = {
+          id,
+          createdAt: Date.now(),
+          ...p,
+        };
         set({ pedidos: [newOrder, ...get().pedidos] });
         return id;
       },

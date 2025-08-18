@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import styled, { ThemeProvider } from "styled-components/native";
 import { Alert, FlatList } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../types";
+import { RootStackParamList, Lanche, Ingredient } from "../../types";
 import { theme } from "../styles/theme";
 import { useLanches } from "../store/useLanches";
 import IngredientFlag from "../components/IngredientFlag";
@@ -30,7 +30,7 @@ const Subtle = styled.Text`
 
 type Props = NativeStackScreenProps<RootStackParamList, "Pedido">;
 
-export default function PedidoScreen({ route, navigation }: Props) {
+function PedidoScreen({ route, navigation }: Props) {
   const { lancheId } = route.params;
   const { getById } = useLanches();
   const { addPedido } = usePedidos();
@@ -39,16 +39,17 @@ export default function PedidoScreen({ route, navigation }: Props) {
   const [note, setNote] = useState<string>("");
 
   const [flags, setFlags] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    lanche?.ingredients.forEach(i => initial[i.id] = true); // true = inclui
-    return initial;
+    // Se lanche ou ingredientes forem undefined, retorna objeto vazio
+    if (!lanche?.ingredients) return {};
+    // Senão, inicializa cada ingrediente como true
+    return Object.fromEntries(lanche.ingredients.map((i) => [i.id, true]));
   });
 
   const excludedNames = useMemo(() => {
-    if (!lanche) return [];
+    if (!lanche?.ingredients) return [];
     return lanche.ingredients
-      .filter(i => flags[i.id] === false)
-      .map(i => i.name);
+      .filter((i) => flags[i.id] === false)
+      .map((i) => i.name);
   }, [flags, lanche]);
 
   if (!lanche) {
@@ -63,8 +64,20 @@ export default function PedidoScreen({ route, navigation }: Props) {
   }
 
   function salvar() {
-    const excludedIds = Object.entries(flags).filter(([_, v]) => v === false).map(([k]) => k);
-    const orderId = addPedido({ lancheId: lanche.id, excludedIngredientIds: excludedIds, note });
+    const excludedIds = Object.entries(flags)
+      .filter(([_, v]) => v === false)
+      .map(([k]) => k);
+
+    const orderId = addPedido({
+      lanches: [
+        {
+          lancheId: lanche!.id,
+          ingredients: excludedIds, // ou os ingredientes que o usuário selecionou
+        },
+      ],
+      note,
+    });
+
     Alert.alert("Pedido salvo", `Pedido #${orderId.split("_").pop()} criado.`);
     navigation.goBack();
   }
@@ -73,30 +86,41 @@ export default function PedidoScreen({ route, navigation }: Props) {
     <ThemeProvider theme={theme}>
       <Container>
         <Title>{lanche.name}</Title>
-        <Subtle>Marque para INCLUIR — desmarque o que o cliente NÃO quer.</Subtle>
+        <Subtle>
+          Marque para INCLUIR — desmarque o que o cliente NÃO quer.
+        </Subtle>
 
         <FlatList
-          data={lanche.ingredients}
+          data={lanche.ingredients ?? []}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <IngredientFlag
               ingredient={item}
               value={flags[item.id] !== false}
-              onChange={(next) => setFlags(prev => ({ ...prev, [item.id]: next }))}
+              onChange={(next) =>
+                setFlags((prev) => ({ ...prev, [item.id]: next }))
+              }
             />
           )}
+          contentContainerStyle={{ paddingBottom: 16 }}
         />
 
-        <Input placeholder="Observações (ex.: ponto da carne, pouco sal)"
+        <Input
+          placeholder="Observações (ex.: ponto da carne, pouco sal)"
           value={note}
-          onChangeText={setNote} />
+          onChangeText={setNote}
+        />
 
         {excludedNames.length > 0 ? (
           <Subtle>Sem: {excludedNames.join(", ")}</Subtle>
-        ) : <Subtle>Nenhum ingrediente removido.</Subtle>}
+        ) : (
+          <Subtle>Nenhum ingrediente removido.</Subtle>
+        )}
 
         <Button title="Salvar Pedido" variant="success" onPress={salvar} />
       </Container>
     </ThemeProvider>
   );
 }
+
+export default PedidoScreen;

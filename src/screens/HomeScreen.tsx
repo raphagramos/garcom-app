@@ -3,11 +3,11 @@ import styled, { ThemeProvider } from "styled-components/native";
 import Button from "../components/Button";
 import { theme } from "../styles/theme";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../../types";
 
 const Container = styled.SafeAreaView`
   flex: 1;
-  background-color: ${props => props.theme.colors.background};
+  background-color: ${(props) => props.theme.colors.background};
   padding: 20px;
 `;
 
@@ -30,10 +30,21 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <ThemeProvider theme={theme}>
       <Container>
-        <Title>Garçom</Title>
-        <Subtitle>Cadastre lanches e anote pedidos marcando o que o cliente NÃO quer.</Subtitle>
-        <Button title="Ver Lanches" onPress={() => navigation.navigate("Lanches")} />
-        <Button title="Cadastrar Lanche" variant="info" onPress={() => navigation.navigate("Cadastrar Lanche")} />
+        <Title>Mesa Click</Title>
+        <Button
+          title="Ver Lanches"
+          onPress={() => navigation.navigate("Lanches")}
+        />
+        <Button
+          title="Novo Pedido"
+          variant="success"
+          onPress={() => navigation.navigate("New")}
+        />
+        <Button
+          title="Consultar Pedidos"
+          variant="info"
+          onPress={() => navigation.navigate("ConsultarPedidos")}
+        />
       </Container>
     </ThemeProvider>
   );
