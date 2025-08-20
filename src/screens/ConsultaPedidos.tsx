@@ -46,13 +46,13 @@ export default function ConsultarPedidosScreen({ navigation }: Props) {
 
                 const ingredientNames = (ingredients ?? [])
                   .map(
-                    (iId) => lanche.ingredients?.find((i) => i.id === iId)?.name
+                    (iId) => lanche.ingredientes?.find((i) => i.id === iId)?.name
                   )
                   .filter(Boolean);
 
                 return (
                   <Text key={lanche.id}>
-                    {lanche.name}
+                    {lanche.nome}
                     {ingredientNames.length > 0
                       ? ` (Ingredientes: ${ingredientNames.join(", ")})`
                       : ""}

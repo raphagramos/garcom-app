@@ -1,12 +1,15 @@
-export type Ingredient = { 
-  id: string; 
-  name: string; 
+export type Ingredient = {
+  id: string;
+  name: string;
+};
+export type IngredientSelection = Ingredient & {
+  selected: boolean;
 };
 
 export type Lanche = {
   id: string;
-  name: string;
-  ingredients: Ingredient[];
+  nome: string;
+  ingredientes: Ingredient[];
 };
 
 export type Order = {
@@ -14,7 +17,7 @@ export type Order = {
   createdAt: number;
   lanches: {
     lancheId: string;
-    ingredients: string[]; 
+    ingredients: string[];
   }[];
   note: string;
 };
@@ -23,11 +26,13 @@ export type RootStackParamList = {
   Home: undefined;
   Lanches: undefined;
   CadastroLanche: { comIngredientes: boolean };
+  ProductLists: undefined;
   Pedido: { lancheId: string };
   PedidoCustom: {
     lancheId: string;
     selectedIngredients?: string[];
     onReturn?: (selected: string[]) => void;
+    mode: "pedido" | "cadastro"; 
   };
   New: undefined;
   ConsultarPedidos: undefined;

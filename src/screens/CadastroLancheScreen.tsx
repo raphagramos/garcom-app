@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled, { ThemeProvider } from "styled-components/native";
 import Input from "../components/Input";
-import Button from "../components/Button";
+import Button from "../components/Simplebutton";
 import { theme } from "../styles/theme";
 import { useLanches } from "../store/useLanches";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -27,29 +27,41 @@ export default function CadastroLancheScreen({ navigation, route }: Props) {
   const [nome, setNome] = useState<string>("");
   const [ingredientes, setIngredientes] = useState<string>("");
 
-  function salvar() {
+  async function salvar() {
     if (!nome.trim()) {
       return Alert.alert("Erro", "Informe o nome do item.");
     }
 
     const ingList = comIngredientes
-      ? ingredientes.split(",").map((s) => s.trim()).filter(Boolean)
+      ? ingredientes
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
       : [];
 
     if (comIngredientes && ingList.length === 0) {
       return Alert.alert("Erro", "Informe ao menos um ingrediente.");
     }
 
-    addLanche(nome.trim(), ingList);
-    Alert.alert("Sucesso", "Item cadastrado!");
-    navigation.navigate("Lanches");
+    try {
+      await addLanche(nome.trim(), ingList); // ⬅️ espera a requisição terminar
+      Alert.alert("Sucesso", "Item cadastrado!");
+      navigation.navigate("Lanches");
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Erro", "Não foi possível cadastrar o item.");
+    }
   }
 
   return (
     <ThemeProvider theme={theme}>
       <Container>
         <Label>Nome do item</Label>
-        <Input placeholder="Ex.: X-Burger" value={nome} onChangeText={setNome} />
+        <Input
+          placeholder={comIngredientes ? "Ex.: X-Salada" : "Ex.: Coca-cola"}
+          value={nome}
+          onChangeText={setNome}
+        />
 
         {comIngredientes && (
           <>
@@ -63,7 +75,7 @@ export default function CadastroLancheScreen({ navigation, route }: Props) {
           </>
         )}
 
-        <Button title="Salvar" onPress={salvar} />
+        <Button title="Salvar" variant="success" onPress={salvar} />
       </Container>
     </ThemeProvider>
   );

@@ -1,34 +1,48 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Order } from "../../types";
-import { uid } from "../utils/uid";
 
 type PedidoState = {
   pedidos: Order[];
-  addPedido: (p: Omit<Order, "id" | "createdAt">) => string;
-  clear: () => void;
+  fetchPedidos: () => Promise<void>;
+  addPedido: (p: Omit<Order, "id" | "createdAt">) => Promise<string>;
+  updateStatus: (id: string, status: string) => Promise<void>;
 };
 
-export const usePedidos = create<PedidoState>()(
-  persist(
-    (set, get) => ({
-      pedidos: [],
-      addPedido: (p) => {
-        const id = uid("pedido");
-        const newOrder: Order = {
-          id,
-          createdAt: Date.now(),
-          ...p,
-        };
-        set({ pedidos: [newOrder, ...get().pedidos] });
-        return id;
-      },
-      clear: () => set({ pedidos: [] }),
-    }),
-    {
-      name: "garcom_pedidos",
-      storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
-);
+export const usePedidos = create<PedidoState>((set, get) => ({
+  pedidos: [],
+
+  // 📥 Buscar pedidos no backend
+  fetchPedidos: async () => {
+    const res = await fetch("http://10.0.2.2:8080/pedidos", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data: Order[] = await res.json();
+    set({ pedidos: data });
+  },
+
+  // ➕ Criar pedido
+  addPedido: async (p) => {
+    const res = await fetch("http://10.0.2.2:8080/pedidos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(p),
+    });
+    const newOrder: Order = await res.json();
+    set({ pedidos: [newOrder, ...get().pedidos] });
+    return newOrder.id;
+  },
+
+  // 🔄 Atualizar status
+  updateStatus: async (id, status) => {
+    const res = await fetch(`http://10.0.2.2:8080/pedidos/${id}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    const updated: Order = await res.json();
+    set({
+      pedidos: get().pedidos.map((o) => (o.id === id ? updated : o)),
+    });
+  },
+}));

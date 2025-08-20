@@ -40,16 +40,16 @@ function PedidoScreen({ route, navigation }: Props) {
 
   const [flags, setFlags] = useState<Record<string, boolean>>(() => {
     // Se lanche ou ingredientes forem undefined, retorna objeto vazio
-    if (!lanche?.ingredients) return {};
+    if (!lanche?.ingredientes) return {};
     // Senão, inicializa cada ingrediente como true
-    return Object.fromEntries(lanche.ingredients.map((i) => [i.id, true]));
+    return Object.fromEntries(lanche.ingredientes.map((i) => [i.id, true]));
   });
 
   const excludedNames = useMemo(() => {
-    if (!lanche?.ingredients) return [];
-    return lanche.ingredients
-      .filter((i) => flags[i.id] === false)
-      .map((i) => i.name);
+    if (!lanche?.ingredientes) return [];
+    return lanche.ingredientes
+      .filter((i: { id: string | number; }) => flags[i.id] === false)
+      .map((i: { name: any; }) => i.name);
   }, [flags, lanche]);
 
   if (!lanche) {
@@ -63,16 +63,16 @@ function PedidoScreen({ route, navigation }: Props) {
     );
   }
 
-  function salvar() {
+  async function salvar() {
     const excludedIds = Object.entries(flags)
       .filter(([_, v]) => v === false)
       .map(([k]) => k);
 
-    const orderId = addPedido({
+    const orderId = await addPedido({
       lanches: [
         {
           lancheId: lanche!.id,
-          ingredients: excludedIds, // ou os ingredientes que o usuário selecionou
+          ingredients: excludedIds,
         },
       ],
       note,
@@ -85,13 +85,13 @@ function PedidoScreen({ route, navigation }: Props) {
   return (
     <ThemeProvider theme={theme}>
       <Container>
-        <Title>{lanche.name}</Title>
+        <Title>{lanche.nome}</Title>
         <Subtle>
           Marque para INCLUIR — desmarque o que o cliente NÃO quer.
         </Subtle>
 
         <FlatList
-          data={lanche.ingredients ?? []}
+          data={lanche.ingredientes ?? []}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <IngredientFlag
